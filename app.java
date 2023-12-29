@@ -12,6 +12,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class app extends Application {
 
@@ -115,12 +119,15 @@ public class app extends Application {
         double jajan = gaji * 0.3;
 
         data.add(new DataKeuangan(gaji, pengeluaran, kebutuhan, tabungan, jajan, status));
+        DataManager.saveData(data);
     }
 
     private void hapusData() {
         DataKeuangan selectedData = table.getSelectionModel().getSelectedItem();
         if (selectedData != null) {
             data.remove(selectedData);
+
+            DataManager.saveData(data);
         }
     }
 
@@ -218,5 +225,47 @@ public class app extends Application {
             return jajan;
         }
 
+    }
+
+    public static class DataManager {
+
+        private static final String FILE_PATH = "D:\\Java Tutorial\\UAPsem3\\uap\\src\\main\\java\\com\\example\\uap\\data.txt";
+
+        public static List<DataKeuangan> loadData() {
+            List<DataKeuangan> dataList = new ArrayList<>();
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    double gaji = Double.parseDouble(parts[0]);
+                    double pengeluaran = Double.parseDouble(parts[1]);
+                    double kebutuhan = Double.parseDouble(parts[2]);
+                    double tabungan = Double.parseDouble(parts[3]);
+                    double jajan = Double.parseDouble(parts[4]);
+                    String status = parts[5];
+
+                    dataList.add(new DataKeuangan(gaji, pengeluaran, kebutuhan, tabungan, jajan, status));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return dataList;
+        }
+
+        public static void saveData(List<DataKeuangan> dataList) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+                for (DataKeuangan data : dataList) {
+                    String line = String.format("%.2f,%.2f,%.2f,%.2f,%.2f,%s",
+                            data.getGaji(), data.getPengeluaran(), data.getKebutuhan(),
+                            data.getTabungan(), data.getJajan(), data.getStatus());
+                    writer.write(line);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
